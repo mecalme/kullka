@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leitor de Rampa e Estoque</title>
+    <title>WMS Rampa & Estoque</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Biblioteca QuaggaJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h2>App de Rampa e Estoque</h2>
 
-        <!-- Seleção de Modos / Ações -->
+    <div class="container">
+        <h2>Controle de Rampa e Box</h2>
+        
+        <!-- Seleção da Ação -->
         <div class="actions">
             <button onclick="setModo('recebimento')">1. Recebimento Rampa</button>
-            <button onclick="setModo('enderecar')">2. Endereçar Box</button>
+            <button onclick="setModo('box')">2. Endereçar Box</button>
         </div>
 
-        <div id="modo-atual" style="text-align: center; margin-bottom: 10px; font-size: 14px; color: #666;">
-            Selecione um modo acima para começar
-        </div>
+        <p id="modo-atual">Modo selecionado: <b>Nenhum</b></p>
 
+        <!-- CAMPO ALTERNATIVO PARA TESTAR SEM CÂMERA (Digitando o EAN-13) -->
         <div class="manual-box" style="margin: 15px 0; background: #fff3cd; padding: 10px; border-radius: 4px;">
-            <button onclick="testarCodigoManual()" style="padding: 6px 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Buscar Manual</button>
+            <label for="codigoManual" style="font-size: 13px; font-weight: bold;">Simular Leitura (Digite o EAN-13):</label><br>
+            <input type="text" id="codigoManual" placeholder="Ex: 7891000100103" style="padding: 5px; width: 70%; margin-top: 5px;">
+            <button onclick="testarCodigoManual()" style="padding: 6px 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Buscar</button>
         </div>
 
-        <!-- Área da Câmera / Leitor com a linha guia interna -->
-        <div id="interactive" class="viewport">
-            <div class="linha-guia"></div>
-        </div>
+        <!-- Área da Câmera / Leitor -->
+        <div id="interactive" class="viewport"></div>
 
         <!-- Resultado da Leitura -->
         <div class="result-box">
@@ -37,10 +39,6 @@
         </div>
     </div>
 
-    <!-- Biblioteca QuaggaJS CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    
-    <!-- Seu script principal -->
     <script src="app.js"></script>
 </body>
 </html>

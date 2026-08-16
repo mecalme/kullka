@@ -1,91 +1,53 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f6f9;
+    background-color: #f4f4f9;
     margin: 0;
     padding: 20px;
-    color: #333;
+    text-align: center;
 }
 
 .container {
-    max-width: 500px;
+    max-width: 400px;
     margin: 0 auto;
-    background: #fff;
+    background: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-h2 {
-    text-align: center;
-    color: #007bff;
-}
-
-.actions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .actions button {
-    flex: 1;
-    padding: 10px;
+    padding: 10px 15px;
+    margin: 5px;
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-weight: bold;
 }
 
 .actions button:hover {
     background-color: #0056b3;
 }
 
-/* Área da câmera */
 .viewport {
     width: 100%;
-    height: 300px;
+    height: 250px;
     background: #000;
-    position: relative;
-    border-radius: 6px;
-    overflow: hidden;
     margin-top: 15px;
-}
-
-/* Linha vermelha guia segura (não bloqueia a câmera) */
-.linha-guia {
-    position: absolute;
-    top: 50%;
-    left: 10%;
-    right: 10%;
-    height: 2px;
-    background-color: #ff3b30;
-    box-shadow: 0 0 6px rgba(255, 59, 48, 0.8);
-    pointer-events: none;
-    z-index: 5;
+    border-radius: 4px;
+    position: relative;
 }
 
 .viewport canvas, .viewport video {
     width: 100%;
     height: 100%;
-    display: block;
+    object-fit: cover;
 }
 
 .result-box {
     margin-top: 20px;
-    padding: 15px;
     background: #e9ecef;
-    border-radius: 6px;
-}
-
-.result-box h3 {
-    margin-top: 0;
-    font-size: 16px;
-    color: #495057;
-}
-
-.result-box p {
-    margin: 5px 0;
-    font-size: 14px;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: left;
 }
