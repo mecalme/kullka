@@ -1,5 +1,5 @@
 // URL do Google Apps Script configurada
-const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbwk-jpMlg68llcwJiZOLUUcotvtzNoZg51ZafgsBsyIIv2t4QL_G7QqqXpYwAbC7MVyAw/exec";
+const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbz3cgdlUMvqtvuL2k5l56pgTVOlInj9MDcWXqqRfR5CvzJI9_VspZXDSDIvwcZ6I3uKag/exec";
 
 let modoAtual = "";
 let aguardandoRevisao = false;
