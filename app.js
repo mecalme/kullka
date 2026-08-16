@@ -48,7 +48,7 @@ function iniciarLeitor() {
             eanAtual = result.codeResult.code;
             aguardandoRevisao = true;
 
-            // 1. ABRE O PAINEL IMEDIATAMENTE (Sem depender da internet)
+            // Abre o painel instantaneamente
             let painel = document.getElementById("painel-revisao");
             painel.style.display = "block";
             
@@ -58,10 +58,38 @@ function iniciarLeitor() {
             document.getElementById("input-fabricacao").value = "";
             document.getElementById("input-validade").value = "";
 
-            // 2. Roda a busca na internet em segundo plano (não trava o painel se falhar)
+            // Busca na internet em segundo plano
             buscarProdutoNaInternet(eanAtual);
         }
     });
+}
+
+// Função para aplicar máscara automática DD/MM/AAAA enquanto digita
+function mascaraData(input) {
+    let valor = input.value.replace(/\D/g, ""); // Remove tudo que não for dígito
+    if (valor.length > 8) valor = valor.substring(0, 8); // Limita a 8 dígitos
+
+    if (valor.length > 4) {
+        valor = valor.substring(0, 2) + '/' + valor.substring(2, 4) + '/' + valor.substring(4);
+    } else if (valor.length > 2) {
+        valor = valor.substring(0, 2) + '/' + valor.substring(2);
+    }
+    
+    input.value = valor;
+}
+
+// Valida se a data DD/MM/AAAA é real
+function validarData(strData) {
+    let partes = strData.split('/');
+    if (partes.length !== 3) return false;
+    let dia = parseInt(partes[0], 10);
+    let mes = parseInt(partes[1], 10);
+    let ano = parseInt(partes[2], 10);
+
+    if (ano < 2020 || ano > 2050 || mes < 1 || mes > 12 || dia < 1 || dia > 31) return false;
+    
+    let dataObj = new Date(ano, mes - 1, dia);
+    return dataObj.getFullYear() === ano && dataObj.getMonth() === (mes - 1) && dataObj.getDate() === dia;
 }
 
 async function buscarProdutoNaInternet(ean) {
@@ -73,7 +101,6 @@ async function buscarProdutoNaInternet(ean) {
             let nomeProduto = dados.product.product_name || dados.product.brands || "";
             let pesoQuantidade = dados.product.quantity ? ` (${dados.product.quantity})` : "";
             
-            // Se achou, atualiza o campo. Se não, limpa para digitação manual
             document.getElementById("input-nome").value = nomeProduto ? (nomeProduto + pesoQuantidade) : "";
             if (!nomeProduto) {
                 document.getElementById("input-nome").placeholder = "Não encontrado. Digite o nome manualmente.";
@@ -84,7 +111,6 @@ async function buscarProdutoNaInternet(ean) {
         }
     } catch (erro) {
         console.warn("Aviso: Falha na busca online ou sem internet.", erro);
-        // Garante que o usuário possa digitar mesmo se a API cair
         document.getElementById("input-nome").value = "";
         document.getElementById("input-nome").placeholder = "Modo offline. Digite o nome manualmente.";
     }
@@ -105,16 +131,26 @@ function cancelarRevisao() {
 function cadastrarProdutoFinal() {
     let nome = document.getElementById("input-nome").value.trim();
     let lote = document.getElementById("input-lote").value.trim();
-    let fabricacao = document.getElementById("input-fabricacao").value;
-    let validade = document.getElementById("input-validade").value;
+    let fabricacaoStr = document.getElementById("input-fabricacao").value.trim();
+    let validadeStr = document.getElementById("input-validade").value.trim();
 
     if (!nome || nome === "Consultando produto...") {
         alert("Por favor, informe o nome do produto.");
         return;
     }
 
-    if (!lote || !validade) {
+    if (!lote || !validadeStr) {
         alert("Por favor, preencha o Lote e a Data de Validade.");
+        return;
+    }
+
+    if (validadeStr.length !== 10 || !validarData(validadeStr)) {
+        alert("Data de Validade inválida. Use o formato DD/MM/AAAA.");
+        return;
+    }
+
+    if (fabricacaoStr && (fabricacaoStr.length !== 10 || !validarData(fabricacaoStr))) {
+        alert("Data de Fabricação inválida. Use o formato DD/MM/AAAA.");
         return;
     }
 
@@ -123,8 +159,8 @@ function cadastrarProdutoFinal() {
         ean: eanAtual,
         nome: nome,
         lote: lote,
-        fabricacao: fabricacao,
-        validade: validade,
+        fabricacao: fabricacaoStr || null,
+        validade: validadeStr,
         dataRegistro: new Date().toISOString()
     };
 

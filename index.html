@@ -40,20 +40,20 @@
             </div>
 
             <div class="form-group">
-                <label>Data de Fabricação:</label>
-                <input type="date" id="input-fabricacao">
+                <label>Data de Fabricação (DD/MM/AAAA):</label>
+                <input type="text" id="input-fabricacao" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this)">
             </div>
 
             <div class="form-group">
-                <label>Data de Validade:</label>
-                <input type="date" id="input-validade">
+                <label>Data de Validade (DD/MM/AAAA):</label>
+                <input type="text" id="input-validade" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this)">
             </div>
 
-            <!-- Botões de Ação -->
-            <button onclick="cadastrarProdutoFinal()" class="btn-salvar">
+            <!-- Botões de Ação (Todos Azuis) -->
+            <button onclick="cadastrarProdutoFinal()" class="btn-acao btn-salvar">
                 Confirmar e Cadastrar no Sistema
             </button>
-            <button onclick="cancelarRevisao()" class="btn-cancelar">
+            <button onclick="cancelarRevisao()" class="btn-acao btn-cancelar">
                 Cancelar / Ler Outro
             </button>
         </div>
