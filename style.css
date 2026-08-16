@@ -63,6 +63,7 @@ h2 {
     padding: 15px;
     background: #e9ecef;
     border-radius: 6px;
+    border: 2px solid #007bff;
 }
 
 .result-box h3 {
@@ -92,16 +93,34 @@ h2 {
     font-size: 14px;
 }
 
-.result-box button {
+.btn-salvar {
     width: 100%;
     padding: 12px;
+    background: #28a745;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+    margin-top: 5px;
 }
 
-.result-box button:hover {
-    opacity: 0.9;
+.btn-salvar:hover {
+    background: #218838;
+}
+
+.btn-cancelar {
+    width: 100%;
+    padding: 12px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.btn-cancelar:hover {
+    background: #c82333;
 }

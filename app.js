@@ -2,11 +2,12 @@ let modoAtual = "";
 let aguardandoRevisao = false;
 let eanAtual = "";
 
+// Inicia a câmera automaticamente ao carregar
+window.addEventListener("DOMContentLoaded", () => {
+    iniciarLeitor();
+});
+
 function setModo(modo) {
-    if (!modoAtual) {
-        // Inicia pela primeira vez
-        iniciarLeitor();
-    }
     modoAtual = modo;
     document.getElementById("modo-atual").innerHTML = `Modo selecionado: <b>${modo === 'recebimento' ? 'Recebimento Rampa' : 'Endereçar Box'}</b>`;
 }
@@ -47,12 +48,17 @@ function iniciarLeitor() {
             eanAtual = result.codeResult.code;
             aguardandoRevisao = true;
 
-            // Exibe o painel de revisão
-            document.getElementById("painel-revisao").style.display = "block";
+            // 1. ABRE O PAINEL IMEDIATAMENTE (Sem depender da internet)
+            let painel = document.getElementById("painel-revisao");
+            painel.style.display = "block";
+            
             document.getElementById("rev-ean").innerText = eanAtual;
-            document.getElementById("input-nome").value = "Buscando produto na internet...";
+            document.getElementById("input-nome").value = "Consultando produto...";
+            document.getElementById("input-lote").value = "";
+            document.getElementById("input-fabricacao").value = "";
+            document.getElementById("input-validade").value = "";
 
-            // Dispara a busca automática online
+            // 2. Roda a busca na internet em segundo plano (não trava o painel se falhar)
             buscarProdutoNaInternet(eanAtual);
         }
     });
@@ -60,30 +66,36 @@ function iniciarLeitor() {
 
 async function buscarProdutoNaInternet(ean) {
     try {
-        let resposta = await fetch(`https://world.openfoodfacts.org/api/v0/product/${ean}.json`);
+        let resposta = await fetch(`https://world.openfoodfacts.org/api/v0/product/${ean}.json`, { mode: 'cors' });
         let dados = await resposta.json();
 
         if (dados.status === 1 && dados.product) {
-            let nomeProduto = dados.product.product_name || dados.product.brands || "Produto sem nome";
+            let nomeProduto = dados.product.product_name || dados.product.brands || "";
             let pesoQuantidade = dados.product.quantity ? ` (${dados.product.quantity})` : "";
-            document.getElementById("input-nome").value = nomeProduto + pesoQuantidade;
+            
+            // Se achou, atualiza o campo. Se não, limpa para digitação manual
+            document.getElementById("input-nome").value = nomeProduto ? (nomeProduto + pesoQuantidade) : "";
+            if (!nomeProduto) {
+                document.getElementById("input-nome").placeholder = "Não encontrado. Digite o nome manualmente.";
+            }
         } else {
             document.getElementById("input-nome").value = "";
-            document.getElementById("input-nome").placeholder = "Não encontrado. Digite o nome manualmente.";
+            document.getElementById("input-nome").placeholder = "Não cadastrado. Digite o nome manualmente.";
         }
     } catch (erro) {
-        console.error("Erro ao buscar na internet:", erro);
+        console.warn("Aviso: Falha na busca online ou sem internet.", erro);
+        // Garante que o usuário possa digitar mesmo se a API cair
         document.getElementById("input-nome").value = "";
-        document.getElementById("input-nome").placeholder = "Erro de rede. Digite o nome manualmente.";
+        document.getElementById("input-nome").placeholder = "Modo offline. Digite o nome manualmente.";
     }
 }
 
 function cancelarRevisao() {
-    // Limpa os campos e destrava a leitura para escanear de novo
     document.getElementById("input-nome").value = "";
     document.getElementById("input-lote").value = "";
     document.getElementById("input-fabricacao").value = "";
     document.getElementById("input-validade").value = "";
+    
     document.getElementById("painel-revisao").style.display = "none";
     
     eanAtual = "";
@@ -91,12 +103,12 @@ function cancelarRevisao() {
 }
 
 function cadastrarProdutoFinal() {
-    let nome = document.getElementById("input-nome").value;
-    let lote = document.getElementById("input-lote").value;
+    let nome = document.getElementById("input-nome").value.trim();
+    let lote = document.getElementById("input-lote").value.trim();
     let fabricacao = document.getElementById("input-fabricacao").value;
     let validade = document.getElementById("input-validade").value;
 
-    if (!nome) {
+    if (!nome || nome === "Consultando produto...") {
         alert("Por favor, informe o nome do produto.");
         return;
     }
@@ -119,11 +131,5 @@ function cadastrarProdutoFinal() {
     console.log("Item cadastrado com sucesso:", dadosDoItem);
     alert(`Sucesso! Item "${nome}" (Lote: ${lote}) cadastrado.`);
 
-    // Reseta tudo e volta a ler
     cancelarRevisao();
 }
-
-// Inicia o leitor automaticamente ao carregar a página
-window.onload = function() {
-    iniciarLeitor();
-};
