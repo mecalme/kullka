@@ -93,10 +93,8 @@ h2 {
 }
 
 .result-box button {
-    margin-top: 15px;
     width: 100%;
     padding: 12px;
-    background: #28a745;
     color: white;
     border: none;
     border-radius: 4px;
@@ -105,5 +103,5 @@ h2 {
 }
 
 .result-box button:hover {
-    background: #218838;
+    opacity: 0.9;
 }

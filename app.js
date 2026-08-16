@@ -3,9 +3,12 @@ let aguardandoRevisao = false;
 let eanAtual = "";
 
 function setModo(modo) {
+    if (!modoAtual) {
+        // Inicia pela primeira vez
+        iniciarLeitor();
+    }
     modoAtual = modo;
     document.getElementById("modo-atual").innerHTML = `Modo selecionado: <b>${modo === 'recebimento' ? 'Recebimento Rampa' : 'Endereçar Box'}</b>`;
-    iniciarLeitor();
 }
 
 function iniciarLeitor() {
@@ -63,8 +66,6 @@ async function buscarProdutoNaInternet(ean) {
         if (dados.status === 1 && dados.product) {
             let nomeProduto = dados.product.product_name || dados.product.brands || "Produto sem nome";
             let pesoQuantidade = dados.product.quantity ? ` (${dados.product.quantity})` : "";
-            
-            // Preenche o nome junto com o peso/quantidade se disponível
             document.getElementById("input-nome").value = nomeProduto + pesoQuantidade;
         } else {
             document.getElementById("input-nome").value = "";
@@ -75,6 +76,18 @@ async function buscarProdutoNaInternet(ean) {
         document.getElementById("input-nome").value = "";
         document.getElementById("input-nome").placeholder = "Erro de rede. Digite o nome manualmente.";
     }
+}
+
+function cancelarRevisao() {
+    // Limpa os campos e destrava a leitura para escanear de novo
+    document.getElementById("input-nome").value = "";
+    document.getElementById("input-lote").value = "";
+    document.getElementById("input-fabricacao").value = "";
+    document.getElementById("input-validade").value = "";
+    document.getElementById("painel-revisao").style.display = "none";
+    
+    eanAtual = "";
+    aguardandoRevisao = false;
 }
 
 function cadastrarProdutoFinal() {
@@ -94,7 +107,7 @@ function cadastrarProdutoFinal() {
     }
 
     let dadosDoItem = {
-        modo: modoAtual,
+        modo: modoAtual || "Não especificado",
         ean: eanAtual,
         nome: nome,
         lote: lote,
@@ -106,13 +119,11 @@ function cadastrarProdutoFinal() {
     console.log("Item cadastrado com sucesso:", dadosDoItem);
     alert(`Sucesso! Item "${nome}" (Lote: ${lote}) cadastrado.`);
 
-    // Limpa os campos do formulário
-    document.getElementById("input-nome").value = "";
-    document.getElementById("input-lote").value = "";
-    document.getElementById("input-fabricacao").value = "";
-    document.getElementById("input-validade").value = "";
-    document.getElementById("painel-revisao").style.display = "none";
-    
-    eanAtual = "";
-    aguardandoRevisao = false;
+    // Reseta tudo e volta a ler
+    cancelarRevisao();
 }
+
+// Inicia o leitor automaticamente ao carregar a página
+window.onload = function() {
+    iniciarLeitor();
+};
