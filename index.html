@@ -23,7 +23,7 @@
         <!-- Área da Câmera / Leitor -->
         <div id="interactive" class="viewport"></div>
 
-        <!-- Painel de Revisão e Complemento Manual -->
+        <!-- Painel de Revisão e Captura por Partes -->
         <div id="painel-revisao" class="result-box" style="display: none;">
             <h3>Revisão e Dados de Lote</h3>
             
@@ -34,9 +34,13 @@
                 <input type="text" id="input-nome" placeholder="Digite o nome do produto...">
             </div>
 
+            <!-- Grupo com Botões de Câmera para Lote e Validade -->
             <div class="form-group">
                 <label>Lote:</label>
-                <input type="text" id="input-lote" placeholder="Digite o lote da caixa/item">
+                <div class="input-com-botao">
+                    <input type="text" id="input-lote" placeholder="Digite ou escaneie o lote">
+                    <button type="button" onclick="ativarLeituraParte('lote')" class="btn-escanear-parte" title="Escanear Código do Lote">📷</button>
+                </div>
             </div>
 
             <div class="form-group">
@@ -46,16 +50,28 @@
 
             <div class="form-group">
                 <label>Data de Validade (DD/MM/AAAA):</label>
-                <input type="text" id="input-validade" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this)">
+                <div class="input-com-botao">
+                    <input type="text" id="input-validade" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this)">
+                    <button type="button" onclick="ativarLeituraParte('validade')" class="btn-escanear-parte" title="Escanear Código da Validade">📷</button>
+                </div>
             </div>
 
-            <!-- Botões de Ação (Todos Azuis) -->
+            <!-- Botões de Ação -->
             <button onclick="cadastrarProdutoFinal()" class="btn-acao btn-salvar">
                 Confirmar e Cadastrar no Sistema
             </button>
             <button onclick="cancelarRevisao()" class="btn-acao btn-cancelar">
                 Cancelar / Ler Outro
             </button>
+        </div>
+    </div>
+
+    <!-- Modal / Alerta de Leitura de Parte -->
+    <div id="modal-leitura-parte" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; justify-content:center; align-items:center; flex-direction:column;">
+        <div style="background:white; padding:20px; border-radius:8px; width:90%; max-width:400px; text-align:center;">
+            <h3 id="titulo-modal-parte" style="margin-top:0; color:#007bff;">Escaneando...</h3>
+            <div id="interactive-parte" style="width:100%; height:250px; background:#000; margin-bottom:15px; border-radius:4px; overflow:hidden;"></div>
+            <button onclick="fecharLeituraParte()" class="btn-acao btn-cancelar" style="margin-top:0;">Cancelar Leitura</button>
         </div>
     </div>
 
