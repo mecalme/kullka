@@ -1,3 +1,6 @@
+// URL do Google Apps Script configurada
+const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbwk-jpMlg68llcwJiZOLUUcotvtzNoZg51ZafgsBsyIIv2t4QL_G7QqqXpYwAbC7MVyAw/exec";
+
 let modoAtual = "";
 let aguardandoRevisao = false;
 let eanAtual = "";
@@ -173,7 +176,7 @@ function cancelarRevisao() {
     iniciarLeitorPrincipal();
 }
 
-function cadastrarProdutoFinal() {
+async function cadastrarProdutoFinal() {
     let nome = document.getElementById("input-nome").value.trim();
     let lote = document.getElementById("input-lote").value.trim();
     let fabricacaoStr = document.getElementById("input-fabricacao").value.trim();
@@ -200,7 +203,7 @@ function cadastrarProdutoFinal() {
     }
 
     let dadosDoItem = {
-        id: Date.now(), // ID único para exclusão
+        id: Date.now(),
         modo: modoAtual || "Não especificado",
         ean: eanAtual,
         nome: nome,
@@ -210,12 +213,26 @@ function cadastrarProdutoFinal() {
         dataRegistro: new Date().toLocaleDateString()
     };
 
-    // Salvar no localStorage
+    // 1. Salvar localmente no navegador
     let listaItens = JSON.parse(localStorage.getItem("base_dados_estoque")) || [];
     listaItens.push(dadosDoItem);
     localStorage.setItem("base_dados_estoque", JSON.stringify(listaItens));
 
-    alert(`Sucesso! Item "${nome}" cadastrado na base.`);
+    // 2. Enviar para a Planilha do Google via URL configurada
+    if (URL_GOOGLE_SHEETS) {
+        try {
+            await fetch(URL_GOOGLE_SHEETS, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dadosDoItem)
+            });
+        } catch (e) {
+            console.warn("Erro ao enviar para o Google Sheets:", e);
+        }
+    }
+
+    alert(`Sucesso! Item "${nome}" cadastrado e enviado para a planilha.`);
 
     cancelarRevisao();
     atualizarTabelaBaseDados();
@@ -237,12 +254,11 @@ function atualizarTabelaBaseDados() {
 
     listaItens.forEach((item) => {
         let linha = document.createElement("tr");
-        
         let modoTexto = item.modo === 'recebimento' ? 'Recebimento' : 'Endereçar';
 
         linha.innerHTML = `
             <td>${modoTexto}</td>
-            <td><b>${item.nome}</b><br><small style="color:#666">Lote: ${item.lote}</small></td>
+            <td><b>${item.nome}</b><br><small style="color:#666">EAN: ${item.ean}</small></td>
             <td>${item.lote}</td>
             <td>${item.validade}</td>
             <td><button onclick="excluirItem(${item.id})" class="btn-excluir-item">Excluir</button></td>
@@ -252,7 +268,7 @@ function atualizarTabelaBaseDados() {
 }
 
 function excluirItem(id) {
-    if (!confirm("Deseja realmente excluir este item da base de dados?")) return;
+    if (!confirm("Deseja realmente excluir este item do histórico local?")) return;
     
     let listaItens = JSON.parse(localStorage.getItem("base_dados_estoque")) || [];
     let novaLista = listaItens.filter(item => item.id !== id);
@@ -262,7 +278,7 @@ function excluirItem(id) {
 }
 
 function limparBaseDados() {
-    if (!confirm("Tem certeza que deseja apagar TODOS os itens da base de dados?")) return;
+    if (!confirm("Tem certeza que deseja apagar o histórico local?")) return;
     
     localStorage.removeItem("base_dados_estoque");
     atualizarTabelaBaseDados();
