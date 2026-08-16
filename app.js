@@ -193,7 +193,6 @@ function cadastrarProdutoFinal() {
         return;
     }
 
-    // A fabricação agora é opcional: só valida se o usuário preencheu algo
     if (fabricacaoStr && (fabricacaoStr.length !== 10 || !validarData(fabricacaoStr))) {
         alert("Data de Fabricação inválida. Use o formato DD/MM/AAAA ou deixe em branco.");
         return;
