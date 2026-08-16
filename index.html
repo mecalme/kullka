@@ -23,16 +23,35 @@
         <!-- Área da Câmera / Leitor -->
         <div id="interactive" class="viewport"></div>
 
-        <!-- Painel de Revisão e Cadastro Temporário -->
-        <div class="result-box">
-            <h3>Revisão de Dados Capturados</h3>
-            <p><b>EAN Lido:</b> <span id="rev-ean">-</span></p>
-            <p><b>Produto:</b> <span id="rev-nome">-</span></p>
-            <p><b>Marca:</b> <span id="rev-marca">-</span></p>
+        <!-- Painel de Revisão e Complemento Manual -->
+        <div class="result-box" id="painel-revisao" style="display: none;">
+            <h3>Revisão e Dados de Lote</h3>
+            
+            <p><b>EAN:</b> <span id="rev-ean">-</span></p>
+            
+            <div class="form-group">
+                <label>Nome do Produto / Peso:</label>
+                <input type="text" id="input-nome" placeholder="Buscando na internet...">
+            </div>
 
-            <!-- Botão para efetivar o cadastro após revisar -->
-            <button id="btn-cadastrar" onclick="cadastrarProdutoTemporario()">
-                Cadastrar no Sistema
+            <div class="form-group">
+                <label>Lote:</label>
+                <input type="text" id="input-lote" placeholder="Digite o lote da caixa/item">
+            </div>
+
+            <div class="form-group">
+                <label>Data de Fabricação:</label>
+                <input type="date" id="input-fabricacao">
+            </div>
+
+            <div class="form-group">
+                <label>Data de Validade:</label>
+                <input type="date" id="input-validade">
+            </div>
+
+            <!-- Botão para efetivar o cadastro -->
+            <button onclick="cadastrarProdutoFinal()">
+                Confirmar e Cadastrar no Sistema
             </button>
         </div>
     </div>

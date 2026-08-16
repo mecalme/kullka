@@ -1,27 +1,17 @@
 let modoAtual = "";
-let aguardandoRevisao = false; // Impede travamentos da câmera
-
-let produtoTemporario = {
-    ean: "",
-    nome: "",
-    marca: ""
-};
+let aguardandoRevisao = false;
+let eanAtual = "";
 
 function setModo(modo) {
     modoAtual = modo;
     document.getElementById("modo-atual").innerHTML = `Modo selecionado: <b>${modo === 'recebimento' ? 'Recebimento Rampa' : 'Endereçar Box'}</b>`;
-    
-    // Inicia o leitor apenas se já não estiver rodando
     iniciarLeitor();
 }
 
 function iniciarLeitor() {
-    // Evita inicializações duplicadas que deixam a tela preta
     try {
         Quagga.stop();
-    } catch (e) {
-        // Ignora se não houver instância ativa
-    }
+    } catch (e) {}
 
     Quagga.init({
         inputStream : {
@@ -31,7 +21,7 @@ function iniciarLeitor() {
             constraints: {
                 width: 640,
                 height: 480,
-                facingMode: "environment" // Câmera traseira
+                facingMode: "environment"
             },
         },
         decoder : {
@@ -41,59 +31,88 @@ function iniciarLeitor() {
     }, function(err) {
         if (err) {
             console.error("Erro ao iniciar a câmera:", err);
-            alert("Não foi possível acessar a câmera.");
             return;
         }
         Quagga.start();
         aguardandoRevisao = false;
-        console.log("Câmera iniciada com segurança!");
     });
 
-    // Evento de leitura contínua seguro
     Quagga.onDetected(function(result) {
-        if (aguardandoRevisao) return; // Se já leu e aguarda cadastro, ignora novas leituras temporariamente
+        if (aguardandoRevisao) return;
 
         if (result && result.codeResult && result.codeResult.code) {
-            var codigoLido = result.codeResult.code;
-            aguardandoRevisao = true; // Trava novas leituras para fixar os dados na tela
+            eanAtual = result.codeResult.code;
+            aguardandoRevisao = true;
 
-            // 1. Guarda os dados na memória temporária
-            produtoTemporario.ean = codigoLido;
-            produtoTemporario.nome = (codigoLido === "7891000100103") ? "Leite Condensado Nestlé 395g" : "Produto EAN: " + codigoLido;
-            produtoTemporario.marca = (codigoLido === "7891000100103") ? "Nestlé" : "Identificado via Câmera";
+            // Exibe o painel de revisão
+            document.getElementById("painel-revisao").style.display = "block";
+            document.getElementById("rev-ean").innerText = eanAtual;
+            document.getElementById("input-nome").value = "Buscando produto na internet...";
 
-            // 2. Joga os dados no Painel de Revisão
-            document.getElementById("rev-ean").innerText = produtoTemporario.ean;
-            document.getElementById("rev-nome").innerText = produtoTemporario.nome;
-            document.getElementById("rev-marca").innerText = produtoTemporario.marca;
-
-            // 3. Mostra o botão de cadastro
-            document.getElementById("btn-cadastrar").style.display = "block";
-            
-            console.log("Produto guardado na memória temporária:", produtoTemporario);
+            // Dispara a busca automática online
+            buscarProdutoNaInternet(eanAtual);
         }
     });
 }
 
-// Ação ao clicar no botão de confirmar o cadastro
-function cadastrarProdutoTemporario() {
-    if (!produtoTemporario.ean) {
-        alert("Nenhum produto na memória para cadastrar.");
+async function buscarProdutoNaInternet(ean) {
+    try {
+        let resposta = await fetch(`https://world.openfoodfacts.org/api/v0/product/${ean}.json`);
+        let dados = await resposta.json();
+
+        if (dados.status === 1 && dados.product) {
+            let nomeProduto = dados.product.product_name || dados.product.brands || "Produto sem nome";
+            let pesoQuantidade = dados.product.quantity ? ` (${dados.product.quantity})` : "";
+            
+            // Preenche o nome junto com o peso/quantidade se disponível
+            document.getElementById("input-nome").value = nomeProduto + pesoQuantidade;
+        } else {
+            document.getElementById("input-nome").value = "";
+            document.getElementById("input-nome").placeholder = "Não encontrado. Digite o nome manualmente.";
+        }
+    } catch (erro) {
+        console.error("Erro ao buscar na internet:", erro);
+        document.getElementById("input-nome").value = "";
+        document.getElementById("input-nome").placeholder = "Erro de rede. Digite o nome manualmente.";
+    }
+}
+
+function cadastrarProdutoFinal() {
+    let nome = document.getElementById("input-nome").value;
+    let lote = document.getElementById("input-lote").value;
+    let fabricacao = document.getElementById("input-fabricacao").value;
+    let validade = document.getElementById("input-validade").value;
+
+    if (!nome) {
+        alert("Por favor, informe o nome do produto.");
         return;
     }
 
-    console.log("Efetivando cadastro:", produtoTemporario);
-    alert(`Sucesso! O produto ${produtoTemporario.nome} foi cadastrado.`);
+    if (!lote || !validade) {
+        alert("Por favor, preencha o Lote e a Data de Validade.");
+        return;
+    }
 
-    // Limpa o painel de revisão
-    document.getElementById("rev-ean").innerText = "-";
-    document.getElementById("rev-nome").innerText = "-";
-    document.getElementById("rev-marca").innerText = "-";
-    document.getElementById("btn-cadastrar").style.display = "none";
+    let dadosDoItem = {
+        modo: modoAtual,
+        ean: eanAtual,
+        nome: nome,
+        lote: lote,
+        fabricacao: fabricacao,
+        validade: validade,
+        dataRegistro: new Date().toISOString()
+    };
+
+    console.log("Item cadastrado com sucesso:", dadosDoItem);
+    alert(`Sucesso! Item "${nome}" (Lote: ${lote}) cadastrado.`);
+
+    // Limpa os campos do formulário
+    document.getElementById("input-nome").value = "";
+    document.getElementById("input-lote").value = "";
+    document.getElementById("input-fabricacao").value = "";
+    document.getElementById("input-validade").value = "";
+    document.getElementById("painel-revisao").style.display = "none";
     
-    // Reseta o objeto temporário
-    produtoTemporario = { ean: "", nome: "", marca: "" };
-    
-    // Libera para ler novos produtos mantendo a câmera ativa (sem tela preta)
+    eanAtual = "";
     aguardandoRevisao = false;
 }
