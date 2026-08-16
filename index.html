@@ -23,8 +23,8 @@
         <!-- Área da Câmera / Leitor -->
         <div id="interactive" class="viewport"></div>
 
-        <!-- Painel de Revisão e Complemento Manual -->
-        <div class="result-box" id="painel-revisao" style="display: none;">
+        <!-- Painel de Revisão e Complemento Manual (Oculto por padrão) -->
+        <div id="painel-revisao" class="result-box" style="display: none;">
             <h3>Revisão e Dados de Lote</h3>
             
             <p><b>EAN:</b> <span id="rev-ean">-</span></p>
@@ -50,10 +50,10 @@
             </div>
 
             <!-- Botões de Ação -->
-            <button onclick="cadastrarProdutoFinal()" style="background: #28a745;">
+            <button onclick="cadastrarProdutoFinal()" class="btn-salvar">
                 Confirmar e Cadastrar no Sistema
             </button>
-            <button onclick="cancelarRevisao()" style="background: #dc3545; margin-top: 8px;">
+            <button onclick="cancelarRevisao()" class="btn-cancelar">
                 Cancelar / Ler Outro
             </button>
         </div>
