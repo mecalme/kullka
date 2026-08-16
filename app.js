@@ -5,6 +5,7 @@ let campoAlvoOCR = "";
 
 window.addEventListener("DOMContentLoaded", () => {
     iniciarLeitorPrincipal();
+    atualizarTabelaBaseDados();
 });
 
 function setModo(modo) {
@@ -199,17 +200,70 @@ function cadastrarProdutoFinal() {
     }
 
     let dadosDoItem = {
+        id: Date.now(), // ID único para exclusão
         modo: modoAtual || "Não especificado",
         ean: eanAtual,
         nome: nome,
         lote: lote,
         fabricacao: fabricacaoStr || null,
         validade: validadeStr,
-        dataRegistro: new Date().toISOString()
+        dataRegistro: new Date().toLocaleDateString()
     };
 
-    console.log("Item cadastrado com sucesso:", dadosDoItem);
-    alert(`Sucesso! Item "${nome}" (Lote: ${lote}) cadastrado.`);
+    // Salvar no localStorage
+    let listaItens = JSON.parse(localStorage.getItem("base_dados_estoque")) || [];
+    listaItens.push(dadosDoItem);
+    localStorage.setItem("base_dados_estoque", JSON.stringify(listaItens));
+
+    alert(`Sucesso! Item "${nome}" cadastrado na base.`);
 
     cancelarRevisao();
+    atualizarTabelaBaseDados();
+}
+
+function atualizarTabelaBaseDados() {
+    let corpoTabela = document.getElementById("lista-corpo");
+    let mensagemVazia = document.getElementById("mensagem-vazia");
+    let listaItens = JSON.parse(localStorage.getItem("base_dados_estoque")) || [];
+
+    corpoTabela.innerHTML = "";
+
+    if (listaItens.length === 0) {
+        mensagemVazia.style.display = "block";
+        return;
+    }
+
+    mensagemVazia.style.display = "none";
+
+    listaItens.forEach((item) => {
+        let linha = document.createElement("tr");
+        
+        let modoTexto = item.modo === 'recebimento' ? 'Recebimento' : 'Endereçar';
+
+        linha.innerHTML = `
+            <td>${modoTexto}</td>
+            <td><b>${item.nome}</b><br><small style="color:#666">Lote: ${item.lote}</small></td>
+            <td>${item.lote}</td>
+            <td>${item.validade}</td>
+            <td><button onclick="excluirItem(${item.id})" class="btn-excluir-item">Excluir</button></td>
+        `;
+        corpoTabela.appendChild(linha);
+    });
+}
+
+function excluirItem(id) {
+    if (!confirm("Deseja realmente excluir este item da base de dados?")) return;
+    
+    let listaItens = JSON.parse(localStorage.getItem("base_dados_estoque")) || [];
+    let novaLista = listaItens.filter(item => item.id !== id);
+    
+    localStorage.setItem("base_dados_estoque", JSON.stringify(novaLista));
+    atualizarTabelaBaseDados();
+}
+
+function limparBaseDados() {
+    if (!confirm("Tem certeza que deseja apagar TODOS os itens da base de dados?")) return;
+    
+    localStorage.removeItem("base_dados_estoque");
+    atualizarTabelaBaseDados();
 }
