@@ -1,10 +1,10 @@
 let modoAtual = "";
 let aguardandoRevisao = false;
 let eanAtual = "";
+let campoAlvoOCR = ""; // Guarda se vamos preencher 'lote' ou 'validade'
 
-// Inicia a câmera automaticamente ao carregar
 window.addEventListener("DOMContentLoaded", () => {
-    iniciarLeitor();
+    iniciarLeitorPrincipal();
 });
 
 function setModo(modo) {
@@ -12,7 +12,7 @@ function setModo(modo) {
     document.getElementById("modo-atual").innerHTML = `Modo selecionado: <b>${modo === 'recebimento' ? 'Recebimento Rampa' : 'Endereçar Box'}</b>`;
 }
 
-function iniciarLeitor() {
+function iniciarLeitorPrincipal() {
     try {
         Quagga.stop();
     } catch (e) {}
@@ -48,7 +48,6 @@ function iniciarLeitor() {
             eanAtual = result.codeResult.code;
             aguardandoRevisao = true;
 
-            // Abre o painel instantaneamente
             let painel = document.getElementById("painel-revisao");
             painel.style.display = "block";
             
@@ -58,16 +57,71 @@ function iniciarLeitor() {
             document.getElementById("input-fabricacao").value = "";
             document.getElementById("input-validade").value = "";
 
-            // Busca na internet em segundo plano
             buscarProdutoNaInternet(eanAtual);
         }
     });
 }
 
-// Função para aplicar máscara automática DD/MM/AAAA enquanto digita
+// Dispara a câmera do celular para tirar foto da etiqueta do Lote ou Validade
+function capturarTextoCamera(tipo) {
+    campoAlvoOCR = tipo;
+    // Abre o seletor de arquivo apontando para a câmera traseira (capture="environment")
+    document.getElementById("input-camera-ocr").click();
+}
+
+// Processa a foto tirada usando Inteligência Artificial (Tesseract OCR)
+async function processarFotoOCR(event) {
+    let arquivo = event.target.files[0];
+    if (!arquivo) return;
+
+    let inputAlvoId = campoAlvoOCR === 'lote' ? 'input-lote' : 'input-validade';
+    let inputElemento = document.getElementById(inputAlvoId);
+    
+    inputElemento.value = "Lendo texto da foto...";
+
+    try {
+        // Executa o OCR na imagem capturada
+        let resultado = await Tesseract.recognize(
+            arquivo,
+            'por', // Idioma português (ajuda a reconhecer letras/números comuns)
+            { logger: m => console.log(m) }
+        );
+
+        let textoExtraido = resultado.data.text.trim();
+        
+        // Limpa quebras de linha e espaços excessivos
+        textoExtraido = textoExtraido.replace(/[\r\n]+/g, " ").trim();
+
+        if (campoAlvoOCR === 'validade') {
+            // Tenta encontrar uma data no texto extraído (ex: DD/MM/AAAA ou DDMMAAAA)
+            let matchData = textoExtraido.match(/\d{2}\/\d{2}\/\d{4}/) || textoExtraido.match(/\d{8}/);
+            if (matchData) {
+                let dataLimpa = matchData[0];
+                if (dataLimpa.length === 8) {
+                    dataLimpa = dataLimpa.substring(0,2) + '/' + dataLimpa.substring(2,4) + '/' + dataLimpa.substring(4);
+                }
+                inputElemento.value = dataLimpa;
+            } else {
+                inputElemento.value = textoExtraido; // Insere o texto bruto caso não ache o formato exato
+            }
+        } else {
+            // Para o lote, insere o texto limpo encontrado
+            inputElemento.value = textoExtraido;
+        }
+
+    } catch (erro) {
+        console.error("Erro no OCR:", erro);
+        inputElemento.value = "";
+        alert("Não foi possível ler o texto automaticamente. Digite manualmente.");
+    }
+
+    // Limpa o input de arquivo para permitir tirar outra foto se necessário
+    event.target.value = "";
+}
+
 function mascaraData(input) {
-    let valor = input.value.replace(/\D/g, ""); // Remove tudo que não for dígito
-    if (valor.length > 8) valor = valor.substring(0, 8); // Limita a 8 dígitos
+    let valor = input.value.replace(/\D/g, "");
+    if (valor.length > 8) valor = valor.substring(0, 8);
 
     if (valor.length > 4) {
         valor = valor.substring(0, 2) + '/' + valor.substring(2, 4) + '/' + valor.substring(4);
@@ -78,7 +132,6 @@ function mascaraData(input) {
     input.value = valor;
 }
 
-// Valida se a data DD/MM/AAAA é real
 function validarData(strData) {
     let partes = strData.split('/');
     if (partes.length !== 3) return false;
@@ -106,11 +159,10 @@ async function buscarProdutoNaInternet(ean) {
                 document.getElementById("input-nome").placeholder = "Não encontrado. Digite o nome manualmente.";
             }
         } else {
-            document.getElementById("input-nome").value = "";
+            document.getElementById("input-nome-".value = "");
             document.getElementById("input-nome").placeholder = "Não cadastrado. Digite o nome manualmente.";
         }
     } catch (erro) {
-        console.warn("Aviso: Falha na busca online ou sem internet.", erro);
         document.getElementById("input-nome").value = "";
         document.getElementById("input-nome").placeholder = "Modo offline. Digite o nome manualmente.";
     }
@@ -126,6 +178,7 @@ function cancelarRevisao() {
     
     eanAtual = "";
     aguardandoRevisao = false;
+    iniciarLeitorPrincipal();
 }
 
 function cadastrarProdutoFinal() {
@@ -141,16 +194,6 @@ function cadastrarProdutoFinal() {
 
     if (!lote || !validadeStr) {
         alert("Por favor, preencha o Lote e a Data de Validade.");
-        return;
-    }
-
-    if (validadeStr.length !== 10 || !validarData(validadeStr)) {
-        alert("Data de Validade inválida. Use o formato DD/MM/AAAA.");
-        return;
-    }
-
-    if (fabricacaoStr && (fabricacaoStr.length !== 10 || !validarData(fabricacaoStr))) {
-        alert("Data de Fabricação inválida. Use o formato DD/MM/AAAA.");
         return;
     }
 
