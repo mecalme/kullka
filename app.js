@@ -31,7 +31,7 @@ function iniciarLeitor() {
             constraints: {
                 width: 640,
                 height: 480,
-                facingMode: "environment" // Usa a câmera traseira
+                facingMode: "user" // Isso força a câmera frontal
             },
         },
         decoder : {
@@ -39,11 +39,11 @@ function iniciarLeitor() {
         }
     }, function(err) {
         if (err) {
-            console.error("Erro ao iniciar o Quagga:", err);
-            alert("Não foi possível acessar a câmera. Verifique se outro app está usando.");
+            // Escreve o erro direto na tela, em vez de um alerta que você pode ter fechado
+            document.getElementById("produto-nome").innerText = "Erro de Câmera: " + err;
+            console.error("Erro Quagga:", err);
             return;
         }
-        console.log("Quagga inicializado com sucesso!");
         Quagga.start();
     });
 
