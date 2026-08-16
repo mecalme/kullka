@@ -1,5 +1,5 @@
-// URL do Google Apps Script configurada
-const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbz3cgdlUMvqtvuL2k5l56pgTVOlInj9MDcWXqqRfR5CvzJI9_VspZXDSDIvwcZ6I3uKag/exec";
+// URL ATUALIZADA DO GOOGLE APPS SCRIPT
+const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbzORedlimehPRffSFvPmS12hgUsuNWQR8XVemi3j7_T-hWla5JGJIRy-dkPkonS_DLrlg/exec";
 
 let modoAtual = "";
 let aguardandoRevisao = false;
@@ -218,7 +218,7 @@ async function cadastrarProdutoFinal() {
     listaItens.push(dadosDoItem);
     localStorage.setItem("base_dados_estoque", JSON.stringify(listaItens));
 
-    // 2. Enviar para a Planilha do Google via URL configurada
+    // 2. Enviar para a Planilha do Google via URL configurada (usando no-cors para funcionar no GitHub Pages)
     if (URL_GOOGLE_SHEETS) {
         try {
             await fetch(URL_GOOGLE_SHEETS, {
