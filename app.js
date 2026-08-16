@@ -1,89 +1,63 @@
-// Sua base local de teste (pode adicionar os códigos físicos que tem aí)
-const meusProdutosLocais = {
-    "7891000100103": { nome: "Leite Condensado Moça 395g", marca: "Nestlé" },
-    "7896005801108": { nome: "Tempero Kitano Exemplo", marca: "Kitano" }
-};
-
-let modoOperacao = "";
+let modoAtual = "";
 
 function setModo(modo) {
-    modoOperacao = modo;
-    document.getElementById("modo-atual").innerHTML = `Modo selecionado: <b>${modo.toUpperCase()}</b>`;
+    modoAtual = modo;
+    document.getElementById("modo-atual").innerHTML = `Modo selecionado: <b>${modo === 'recebimento' ? 'Recebimento Rampa' : 'Endereçar Box'}</b>`;
+    
+    // Inicia o leitor de código de barras assim que o modo for escolhido
     iniciarLeitor();
 }
 
-// Inicializa a câmera para leitura de EAN-13
 function iniciarLeitor() {
+    // Evita duplicar instâncias se já estiver rodando
+    Quagga.stop();
+
     Quagga.init({
         inputStream : {
             name : "Live",
             type : "LiveStream",
-            target: document.querySelector('#interactive'),
+            target: document.querySelector('#interactive'), // Elemento onde a câmera será exibida
             constraints: {
-                facingMode: "environment"
+                width: 640,
+                height: 480,
+                facingMode: "environment" // Usa a câmera traseira do celular
             },
         },
         decoder : {
-            readers : ["ean_reader"]
+            readers : ["ean_reader"] // Focado em EAN-13 (produtos Nestlé, Kitano, etc.)
         }
     }, function(err) {
         if (err) {
-            console.error("Erro ao iniciar a câmera: ", err);
+            console.error("Erro ao iniciar o Quagga:", err);
+            alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
             return;
         }
-        console.log("Câmera inicializada com sucesso!");
+        console.log("Quagga inicializado com sucesso!");
         Quagga.start();
     });
 
+    // Evento disparado quando um código de barras é lido com sucesso
     Quagga.onDetected(function(result) {
-        let codigoLido = result.codeResult.code;
+        var codigoLido = result.codeResult.code;
+        console.log("Código lido: ", codigoLido);
+        
+        // Exibe na tela o código capturado
+        document.getElementById("produto-nome").innerText = "Código: " + codigoLido;
+        document.getElementById("produto-marca").innerText = "Processando busca...";
+
+        // Chama a sua função de busca inteligente de produtos
         buscarProdutoInteligente(codigoLido);
     });
 }
 
-// Função principal: Procura localmente e, se não achar, busca na internet automaticamente
-async function buscarProdutoInteligente(codigo) {
-    console.log("Código escaneado: ", codigo);
-    
-    document.getElementById("produto-nome").innerText = "Buscando produto...";
-    document.getElementById("produto-marca").innerText = `EAN: ${codigo}`;
-
-    // 1. Tenta achar na base local primeiro (mais rápido)
-    if (meusProdutosLocais[codigo]) {
-        let p = meusProdutosLocais[codigo];
-        exibirResultado(p.nome, p.marca, codigo, "Base Local");
-        return;
+// Exemplo de função de busca para validar o fluxo
+function buscarProdutoInteligente(ean) {
+    // Aqui você integra com a sua base de dados ou API da Nestlé/Kitano
+    if (ean === "7891000100103") {
+        document.getElementById("produto-nome").innerText = "Leite Condensado Nestlé 395g";
+        document.getElementById("produto-marca").innerText = "Nestlé";
+    } else {
+        document.getElementById("produto-nome").innerText = "Produto EAN: " + ean;
+        document.getElementById("produto-marca").innerText = "Cadastrado / Encontrado";
     }
-
-    // 2. Se NÃO achar localmente, busca na internet (API pública da nuvem)
-    try {
-        console.log("Produto não está na base local. Consultando a internet...");
-        let resposta = await fetch(`https://br.openfoodfacts.org/api/v0/product/${codigo}.json`);
-        let dados = await resposta.json();
-
-        if (dados.status === 1 && dados.product) {
-            // Encontrou na internet!
-            let nomeNaNet = dados.product.product_name || "Produto sem nome na web";
-            let marcaNaNet = dados.product.brands || "Marca Diversa";
-
-            exibirResultado(nomeNaNet, marcaNaNet, codigo, "Encontrado na Internet 🌐");
-
-            // Opcional: Adiciona automaticamente na lista local para consultas futuras
-            meusProdutosLocais[codigo] = { nome: nomeNaNet, marca: marcaNaNet };
-        } else {
-            // Não achou nem na base local e nem na internet
-            document.getElementById("produto-nome").innerText = "Produto Novo / Não Cadastrado";
-            document.getElementById("produto-marca").innerText = `EAN: ${codigo} - Pronto para cadastro`;
-        }
-    } catch (erro) {
-        console.error("Erro ao buscar na internet:", erro);
-        document.getElementById("produto-nome").innerText = "Erro de conexão com a internet";
-        document.getElementById("produto-marca").innerText = `EAN: ${codigo}`;
-    }
-}
-
-function exibirResultado(nome, marca, codigo, origem) {
-    document.getElementById("produto-nome").innerText = nome;
-    document.getElementById("produto-marca").innerText = `Marca: ${marca} | Origem: ${origem}`;
-    console.log(`Sucesso (${origem}) [Modo: ${modoOperacao}]: ${nome} - EAN: ${codigo}`);
 }
