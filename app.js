@@ -2,68 +2,39 @@ let modoAtual = "";
 
 function setModo(modo) {
     modoAtual = modo;
-    
-    // Atualiza o texto na tela para mostrar que o botão respondeu
-    const elementoModo = document.getElementById("modo-atual");
-    if (elementoModo) {
-        elementoModo.innerHTML = `Modo selecionado: <b>${modo === 'recebimento' ? 'Recebimento Rampa' : 'Endereçar Box'}</b>`;
-    }
-    
-    // Inicia a câmera
-    iniciarLeitor();
+    document.getElementById("modo-atual").innerHTML = `Modo selecionado: <b>${modo === 'recebimento' ? 'Recebimento Rampa' : 'Endereçar Box'}</b>`;
 }
 
-function iniciarLeitor() {
-    // Verifica se a biblioteca Quagga está carregada antes de tentar usar
-    if (typeof Quagga === 'undefined') {
-        alert("Erro: A biblioteca QuaggaJS não foi carregada. Verifique o index.html.");
-        return;
-    }
+// Processa a foto tirada pela câmera nativa do celular
+function processarFoto(event) {
+    var arquivo = event.target.files[0];
+    if (!arquivo) return;
 
-    // Para instâncias anteriores para evitar conflito
-    Quagga.stop();
-
-    Quagga.init({
-        inputStream : {
-            name : "Live",
-            type : "LiveStream",
-            target: document.querySelector('#interactive'),
-            constraints: {
-                width: 640,
-                height: 480,
-                facingMode: "user" // Isso força a câmera frontal
-            },
-        },
-        decoder : {
-            readers : ["ean_reader"] // Focado em EAN-13 (produtos Nestlé, Kitano, etc.)
-        }
-    }, function(err) {
-        if (err) {
-            // Escreve o erro direto na tela, em vez de um alerta que você pode ter fechado
-            document.getElementById("produto-nome").innerText = "Erro de Câmera: " + err;
-            console.error("Erro Quagga:", err);
-            return;
-        }
-        Quagga.start();
-    });
-
-    // Evento disparado quando o código de barras for detectado
-    Quagga.onDetected(function(result) {
-        var codigoLido = result.codeResult.code;
-        console.log("Código lido: ", codigoLido);
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var imageUrl = e.target.result;
         
-        document.getElementById("produto-nome").innerText = "Código: " + codigoLido;
-        document.getElementById("produto-marca").innerText = "Buscando produto...";
+        document.getElementById("produto-nome").innerText = "Lendo código da foto...";
 
-        buscarProdutoInteligente(codigoLido);
-    });
-}
-
-function testarCodigoManual() {
-    // Função de apoio caso queira testar simulação sem a câmera
-    var codigoExemplo = "7891000100103";
-    document.getElementById("produto-nome").innerText = "Código Manual: " + codigoExemplo;
-    buscarProdutoInteligente(codigoExemplo);
+        // Usa o Quagga para decodificar o código de barras da imagem capturada
+        Quagga.decodeSingle({
+            decoder: {
+                readers: ["ean_reader"]
+            },
+            locate: true,
+            src: imageUrl
+        }, function(result) {
+            if (result && result.codeResult) {
+                var codigoLido = result.codeResult.code;
+                document.getElementById("produto-nome").innerText = "Código: " + codigoLido;
+                buscarProdutoInteligente(codigoLido);
+            } else {
+                document.getElementById("produto-nome").innerText = "Não foi possível ler o código. Tente novamente mais perto.";
+                document.getElementById("produto-marca").innerText = "-";
+            }
+        });
+    };
+    reader.readAsDataURL(arquivo);
 }
 
 function buscarProdutoInteligente(ean) {

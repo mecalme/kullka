@@ -10,22 +10,22 @@
     <div class="container">
         <h2>App de Rampa e Estoque</h2>
 
-        <!-- Seleção de Modos / Ações -->
         <div class="actions">
             <button onclick="setModo('recebimento')">1. Recebimento Rampa</button>
             <button onclick="setModo('enderecar')">2. Endereçar Box</button>
         </div>
 
         <div id="modo-atual" style="text-align: center; margin-bottom: 10px; font-size: 14px; color: #666;">
-            Selecione um modo acima para começar
+            Selecione um modo acima
         </div>
 
-        <div class="manual-box" style="margin: 15px 0; background: #fff3cd; padding: 10px; border-radius: 4px;">
-            <button onclick="testarCodigoManual()" style="padding: 6px 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Buscar Manual</button>
+        <!-- Botão nativo que abre a câmera do celular de verdade -->
+        <div style="text-align: center; margin: 20px 0;">
+            <label for="camera-input" style="background: #007bff; color: white; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-block;">
+                📸 Abrir Câmera do Celular
+            </label>
+            <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="processarFoto(event)">
         </div>
-
-        <!-- Área da Câmera / Leitor -->
-        <div id="interactive" class="viewport"></div>
 
         <!-- Resultado da Leitura -->
         <div class="result-box">
@@ -35,10 +35,8 @@
         </div>
     </div>
 
-    <!-- Biblioteca QuaggaJS CDN (Essencial para ligar a câmera e ler o EAN-13) -->
+    <!-- Biblioteca QuaggaJS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    
-    <!-- Seu script principal -->
     <script src="app.js"></script>
 </body>
 </html>
