@@ -20,22 +20,24 @@
             Selecione um modo acima para começar
         </div>
 
-        <div class="manual-box" style="margin: 15px 0; background: #fff3cd; padding: 10px; border-radius: 4px;">
-            <button onclick="testarCodigoManual()" style="padding: 6px 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Buscar Manual</button>
-        </div>
-
-        <!-- Área da Câmera / Leitor (Versão Original Estável) -->
+        <!-- Área da Câmera / Leitor -->
         <div id="interactive" class="viewport"></div>
 
-        <!-- Resultado da Leitura -->
-        <div class="result-box">
-            <h3>Produto Identificado:</h3>
-            <p id="produto-nome">Nenhum produto lido</p>
-            <p id="produto-marca">-</p>
+        <!-- Painel de Revisão e Cadastro Temporário -->
+        <div class="result-box" style="background: #e9ecef; margin-top: 15px; padding: 15px; border-radius: 6px;">
+            <h3>Revisão de Dados Capturados</h3>
+            <p><b>EAN Lido:</b> <span id="rev-ean">-</span></p>
+            <p><b>Produto:</b> <span id="rev-nome">-</span></p>
+            <p><b>Marca:</b> <span id="rev-marca">-</span></p>
+
+            <!-- Botão para efetivar o cadastro após revisar -->
+            <button id="btn-cadastrar" onclick="cadastrarProdutoTemporario()" style="margin-top: 10px; width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; display: none;">
+                Cadastrar no Sistema
+            </button>
         </div>
     </div>
 
-    <!-- Mantemos a biblioteca Quagga padrão -->
+    <!-- Biblioteca QuaggaJS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="app.js"></script>
 </body>

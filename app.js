@@ -1,4 +1,10 @@
 let modoAtual = "";
+// Memória temporária para guardar os dados do produto escaneado
+let produtoTemporario = {
+    ean: "",
+    nome: "",
+    marca: ""
+};
 
 function setModo(modo) {
     modoAtual = modo;
@@ -30,43 +36,57 @@ function iniciarLeitor() {
             console.error("Erro ao iniciar o leitor:", err);
             return;
         }
-        console.log("Câmera e leitor ativos!");
         Quagga.start();
     });
 
-    // Captura exata do código de barras detectado pela câmera
+    // Quando a câmera detecta o código
     Quagga.onDetected(function(result) {
         if (result && result.codeResult) {
             var codigoLido = result.codeResult.code;
-            console.log("EAN Capturado: ", codigoLido);
             
-            // Exibe o EAN exato no painel de produto
-            document.getElementById("produto-nome").innerText = "EAN Lido: " + codigoLido;
-            document.getElementById("produto-marca").innerText = "Modo: " + modoAtual;
-
-            // Para a leitura momentaneamente para não ficar duplicando na tela
+            // Pausa a câmera para o usuário conseguir revisar sem pressa
             Quagga.stop();
 
-            // Aqui você pode fazer a busca inteligente com o EAN real que a câmera leu
-            buscarProdutoInteligente(codigoLido);
+            // 1. Guarda os dados na memória temporária
+            produtoTemporario.ean = codigoLido;
+            produtoTemporario.nome = (codigoLido === "7891000100103") ? "Leite Condensado Nestlé 395g" : "Produto EAN: " + codigoLido;
+            produtoTemporario.marca = (codigoLido === "7891000100103") ? "Nestlé" : "Identificado via Câmera";
+
+            // 2. Joga os dados no Painel de Revisão da tela
+            document.getElementById("rev-ean").innerText = produtoTemporario.ean;
+            document.getElementById("rev-nome").innerText = produtoTemporario.nome;
+            document.getElementById("rev-marca").innerText = produtoTemporario.marca;
+
+            // 3. Mostra o botão de cadastro para confirmar
+            document.getElementById("btn-cadastrar").style.display = "block";
+            
+            alert("Código lido e guardado na memória temporária! Revise os dados abaixo.");
         }
     });
 }
 
-function testarCodigoManual() {
-    // Código de teste padrão para validar a exibição na tela
-    var codigoExemplo = "7891000100103";
-    document.getElementById("produto-nome").innerText = "EAN Manual: " + codigoExemplo;
-    document.getElementById("produto-marca").innerText = "Leite Condensado Nestlé 395g";
-}
+// Ação executada ao clicar no botão de confirmar o cadastro
+function cadastrarProdutoTemporario() {
+    if (!produtoTemporario.ean) {
+        alert("Nenhum produto na memória para cadastrar.");
+        return;
+    }
 
-function buscarProdutoInteligente(ean) {
-    // Se quiser associar produtos reais aos códigos lidos pela câmera:
-    if (ean === "7891000100103") {
-        document.getElementById("produto-nome").innerText = "EAN: " + ean;
-        document.getElementById("produto-marca").innerText = "Leite Condensado Nestlé 395g";
-    } else {
-        document.getElementById("produto-nome").innerText = "EAN Capturado: " + ean;
-        document.getElementById("produto-marca").innerText = "Produto cadastrado no sistema";
+    // Aqui você envia para a sua base de dados, localStorage ou API futuramente
+    console.log("Produto cadastrado com sucesso:", produtoTemporario);
+    
+    alert(`Sucesso! O produto ${produtoTemporario.nome} foi cadastrado.`);
+
+    // Limpa o painel e reinicia a câmera para o próximo produto
+    document.getElementById("rev-ean").innerText = "-";
+    document.getElementById("rev-nome").innerText = "-";
+    document.getElementById("rev-marca").innerText = "-";
+    document.getElementById("btn-cadastrar").style.display = "none";
+    
+    produtoTemporario = { ean: "", nome: "", marca: "" };
+    
+    // Reinicia a leitura se já houver um modo selecionado
+    if (modoAtual) {
+        iniciarLeitor();
     }
 }
