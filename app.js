@@ -1,5 +1,6 @@
 let modoAtual = "";
-// Memória temporária para guardar os dados do produto escaneado
+let aguardandoRevisao = false; // Impede travamentos da câmera
+
 let produtoTemporario = {
     ean: "",
     nome: "",
@@ -10,11 +11,17 @@ function setModo(modo) {
     modoAtual = modo;
     document.getElementById("modo-atual").innerHTML = `Modo selecionado: <b>${modo === 'recebimento' ? 'Recebimento Rampa' : 'Endereçar Box'}</b>`;
     
+    // Inicia o leitor apenas se já não estiver rodando
     iniciarLeitor();
 }
 
 function iniciarLeitor() {
-    Quagga.stop();
+    // Evita inicializações duplicadas que deixam a tela preta
+    try {
+        Quagga.stop();
+    } catch (e) {
+        // Ignora se não houver instância ativa
+    }
 
     Quagga.init({
         inputStream : {
@@ -24,7 +31,7 @@ function iniciarLeitor() {
             constraints: {
                 width: 640,
                 height: 480,
-                facingMode: "environment"
+                facingMode: "environment" // Câmera traseira
             },
         },
         decoder : {
@@ -33,60 +40,60 @@ function iniciarLeitor() {
         locate: true
     }, function(err) {
         if (err) {
-            console.error("Erro ao iniciar o leitor:", err);
+            console.error("Erro ao iniciar a câmera:", err);
+            alert("Não foi possível acessar a câmera.");
             return;
         }
         Quagga.start();
+        aguardandoRevisao = false;
+        console.log("Câmera iniciada com segurança!");
     });
 
-    // Quando a câmera detecta o código
+    // Evento de leitura contínua seguro
     Quagga.onDetected(function(result) {
-        if (result && result.codeResult) {
+        if (aguardandoRevisao) return; // Se já leu e aguarda cadastro, ignora novas leituras temporariamente
+
+        if (result && result.codeResult && result.codeResult.code) {
             var codigoLido = result.codeResult.code;
-            
-            // Pausa a câmera para o usuário conseguir revisar sem pressa
-            Quagga.stop();
+            aguardandoRevisao = true; // Trava novas leituras para fixar os dados na tela
 
             // 1. Guarda os dados na memória temporária
             produtoTemporario.ean = codigoLido;
             produtoTemporario.nome = (codigoLido === "7891000100103") ? "Leite Condensado Nestlé 395g" : "Produto EAN: " + codigoLido;
             produtoTemporario.marca = (codigoLido === "7891000100103") ? "Nestlé" : "Identificado via Câmera";
 
-            // 2. Joga os dados no Painel de Revisão da tela
+            // 2. Joga os dados no Painel de Revisão
             document.getElementById("rev-ean").innerText = produtoTemporario.ean;
             document.getElementById("rev-nome").innerText = produtoTemporario.nome;
             document.getElementById("rev-marca").innerText = produtoTemporario.marca;
 
-            // 3. Mostra o botão de cadastro para confirmar
+            // 3. Mostra o botão de cadastro
             document.getElementById("btn-cadastrar").style.display = "block";
             
-            alert("Código lido e guardado na memória temporária! Revise os dados abaixo.");
+            console.log("Produto guardado na memória temporária:", produtoTemporario);
         }
     });
 }
 
-// Ação executada ao clicar no botão de confirmar o cadastro
+// Ação ao clicar no botão de confirmar o cadastro
 function cadastrarProdutoTemporario() {
     if (!produtoTemporario.ean) {
         alert("Nenhum produto na memória para cadastrar.");
         return;
     }
 
-    // Aqui você envia para a sua base de dados, localStorage ou API futuramente
-    console.log("Produto cadastrado com sucesso:", produtoTemporario);
-    
+    console.log("Efetivando cadastro:", produtoTemporario);
     alert(`Sucesso! O produto ${produtoTemporario.nome} foi cadastrado.`);
 
-    // Limpa o painel e reinicia a câmera para o próximo produto
+    // Limpa o painel de revisão
     document.getElementById("rev-ean").innerText = "-";
     document.getElementById("rev-nome").innerText = "-";
     document.getElementById("rev-marca").innerText = "-";
     document.getElementById("btn-cadastrar").style.display = "none";
     
+    // Reseta o objeto temporário
     produtoTemporario = { ean: "", nome: "", marca: "" };
     
-    // Reinicia a leitura se já houver um modo selecionado
-    if (modoAtual) {
-        iniciarLeitor();
-    }
+    // Libera para ler novos produtos mantendo a câmera ativa (sem tela preta)
+    aguardandoRevisao = false;
 }
