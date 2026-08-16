@@ -57,13 +57,41 @@
                 </div>
             </div>
 
-            <!-- Botões de Ação com Classes Separadas -->
+            <!-- Botões de Ação com Espaçamento Adequado -->
             <button onclick="cadastrarProdutoFinal()" class="btn-acao btn-salvar">
                 Confirmar e Cadastrar no Sistema
             </button>
             <button onclick="cancelarRevisao()" class="btn-acao btn-cancelar">
                 Cancelar / Ler Outro
             </button>
+        </div>
+
+        <!-- Seção: Lista de Itens Cadastrados na Base de Dados Local -->
+        <div class="secao-lista">
+            <div class="cabecalho-lista">
+                <h3>Base de Dados (Itens Cadastrados)</h3>
+                <button onclick="limparBaseDados()" class="btn-limpar-todos">Limpar Tudo</button>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="tabela-itens">
+                    <thead>
+                        <tr>
+                            <th>Modo</th>
+                            <th>Produto</th>
+                            <th>Lote</th>
+                            <th>Validade</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-corpo">
+                        <!-- Os itens cadastrados aparecem aqui dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="mensagem-vazia" style="text-align: center; color: #777; padding: 15px; font-size: 13px;">
+                Nenhum item cadastrado na base de dados ainda.
+            </div>
         </div>
     </div>
 
