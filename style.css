@@ -42,30 +42,28 @@ h2 {
     background-color: #0056b3;
 }
 
-/* Área da câmera com mira vermelha */
+/* Área da câmera */
 .viewport {
     width: 100%;
     height: 300px;
     background: #000;
-    position: relative; /* Necessário para a linha vermelha ficar por cima */
+    position: relative;
     border-radius: 6px;
     overflow: hidden;
     margin-top: 15px;
 }
 
-/* Mira vermelha centralizada */
-.viewport::after {
-    content: "";
+/* Linha vermelha guia segura (não bloqueia a câmera) */
+.linha-guia {
     position: absolute;
     top: 50%;
     left: 10%;
     right: 10%;
-    height: 3px;
+    height: 2px;
     background-color: #ff3b30;
-    box-shadow: 0 0 8px rgba(255, 59, 48, 0.8);
-    transform: translateY(-50%);
-    pointer-events: none; /* A linha não bloqueia o toque na câmera */
-    z-index: 10;
+    box-shadow: 0 0 6px rgba(255, 59, 48, 0.8);
+    pointer-events: none;
+    z-index: 5;
 }
 
 .viewport canvas, .viewport video {
